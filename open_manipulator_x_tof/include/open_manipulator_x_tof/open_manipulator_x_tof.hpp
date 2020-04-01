@@ -80,6 +80,7 @@ class OpenManipulatorXToFDemo : public rclcpp::Node
   bool set_tool_control(std::vector<double> joint_angle);
   bool set_joint_space_path_from_present(std::vector<std::string> joint_name, std::vector<double> joint_angle, double path_time);
   bool home_position();
+  double euler_distance(double x1, double y1, double z1, double x2, double y2, double z2);
 
   /*****************************************************************************
   ** ROS Clients

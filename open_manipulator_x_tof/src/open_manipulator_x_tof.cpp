@@ -184,30 +184,6 @@ bool OpenManipulatorXToFDemo::set_tool_control(bool state, double path_time)
   return false;
 }
 
-bool OpenManipulatorXToFDemo::set_task_space_path_from_present_position_only(double dx, double dy, double dz, double path_time)
-{ 
-  auto request = std::make_shared<open_manipulator_msgs::srv::SetKinematicsPose::Request>();
-  request->planning_group = "gripper";
-  request->kinematics_pose.pose.position.x = dx;
-  request->kinematics_pose.pose.position.y = dy;
-  request->kinematics_pose.pose.position.z = dz;
-  request->path_time = path_time;
-
-  using ServiceResponseFuture = rclcpp::Client<open_manipulator_msgs::srv::SetKinematicsPose>::SharedFuture;
-  auto response_received_callback = [this](ServiceResponseFuture future) 
-  {
-    auto result = future.get();
-    going = false;
-    return result->is_planned;
-  };
-  going = true;
-  auto future_result = goal_task_space_path_from_present_position_only_client_->async_send_request(request, response_received_callback);
-
-  rclcpp::sleep_for(std::chrono::milliseconds(int(path_time* 1000)));
-
-  return false;
-}
-
 bool OpenManipulatorXToFDemo::set_joint_space_path_from_present(double dangle1, double dangle2, double dangle3, double dangle4, double path_time)
 {
   std::vector<double> joint_angle;
@@ -236,15 +212,52 @@ bool OpenManipulatorXToFDemo::set_joint_space_path_from_present(double dangle1, 
   return false;
 }
 
+bool OpenManipulatorXToFDemo::set_task_space_path_from_present_position_only(double dx, double dy, double dz, double path_time)
+{ 
+  auto request = std::make_shared<open_manipulator_msgs::srv::SetKinematicsPose::Request>();
+  request->planning_group = "gripper";
+  request->kinematics_pose.pose.position.x = dx;
+  request->kinematics_pose.pose.position.y = dy;
+  request->kinematics_pose.pose.position.z = dz;
+
+  double path_time2 = 4*euler_distance(dx, dy, dz, present_kinematic_position_[0], present_kinematic_position_[1], present_kinematic_position_[2]);
+  
+  path_time2 = 1;
+  std::cout << "path_time2: " << path_time2 << "\n";
+
+  request->path_time = path_time2;
+
+  using ServiceResponseFuture = rclcpp::Client<open_manipulator_msgs::srv::SetKinematicsPose>::SharedFuture;
+  auto response_received_callback = [this](ServiceResponseFuture future) 
+  {
+    auto result = future.get();
+    going = false;
+    return result->is_planned;
+  };
+  going = true;
+  auto future_result = goal_task_space_path_from_present_position_only_client_->async_send_request(request, response_received_callback);
+
+  rclcpp::sleep_for(std::chrono::milliseconds(int(path_time2 * 1000)));
+
+  return false;
+}
+
 bool OpenManipulatorXToFDemo::home_position()
 {
   set_joint_space_path(0.0, -PI/3, PI/9, PI*2/9, 1.0);
-  // set_joint_space_path(0.0, 0.0, 0.0, PI/2, 1.0);
-
   set_task_space_path_from_present_position_only(0.200, 0.0 , -0.05, 2.0);
   set_tool_control(true, 1.0);
-  
+
   return false;
+}
+
+double OpenManipulatorXToFDemo::euler_distance(double x1, double y1, double z1, double x2, double y2, double z2)
+{
+  double xSqr = pow((x1 - x2),2);
+  double ySqr = pow((y1 - y2),2);
+  double zSqr = pow((z1 - z2),2);
+
+  return sqrt(xSqr + ySqr + zSqr);
 }
 
 }  // namespace open_manipulator_x_tof
