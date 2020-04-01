@@ -3,7 +3,7 @@
 using namespace std::placeholders;
 using namespace std::chrono_literals;
 
-namespace open_manipulator_x_teleop_keyboard
+namespace open_manipulator_x_tof
 {
 OpenManipulatorXToFDemo::OpenManipulatorXToFDemo()
 : Node("open_manipulator_x_tof")
@@ -244,7 +244,7 @@ bool OpenManipulatorXToFDemo::home_position()
   set_tool_control_bool(true, 1.0);
 }
 
-}  // namespace open_manipulator_x_teleop_keyboard
+}  // namespace open_manipulator_x_tof
 
 /********************************************************************************
 ** Main
@@ -252,7 +252,7 @@ bool OpenManipulatorXToFDemo::home_position()
 int main(int argc, char *argv[])
 {
   rclcpp::init(argc, argv);
-  auto node = std::make_shared<open_manipulator_x_teleop_keyboard::OpenManipulatorXToFDemo>();
+  auto node = std::make_shared<open_manipulator_x_tof::OpenManipulatorXToFDemo>();
   
   rclcpp::sleep_for(std::chrono::milliseconds(1000));
 

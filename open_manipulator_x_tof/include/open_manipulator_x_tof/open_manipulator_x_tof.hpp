@@ -16,8 +16,8 @@
 
 /* Authors: Darby Lim, Hye-Jong KIM, Ryan Shim, Yong-Ho Na */
 
-#ifndef OPEN_MANIPULATOR_X_TELEOP_KEYBOARD_HPP_
-#define OPEN_MANIPULATOR_X_TELEOP_KEYBOARD_HPP_
+#ifndef open_manipulator_x_tof_HPP_
+#define open_manipulator_x_tof_HPP_
 
 #include <termios.h>
 #include <math.h> 
@@ -34,7 +34,7 @@
 #define NUM_OF_JOINT 4
 
 
-namespace open_manipulator_x_teleop_keyboard
+namespace open_manipulator_x_tof
 {
 class OpenManipulatorXToFDemo : public rclcpp::Node
 {
@@ -95,5 +95,5 @@ class OpenManipulatorXToFDemo : public rclcpp::Node
   std::vector<double> get_present_joint_angle();
   std::vector<double> get_present_kinematics_pose();
 };
-}  // namespace open_manipulator_x_teleop_keyboard
-#endif  // OPEN_MANIPULATOR_X_TELEOP_KEYBOARD_HPP_
+}  // namespace open_manipulator_x_tof
+#endif  // open_manipulator_x_tof_HPP_
