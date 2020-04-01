@@ -49,9 +49,10 @@ OpenManipulatorXToFDemo::OpenManipulatorXToFDemo()
   RCLCPP_INFO(this->get_logger(), "OpenManipulator-X Teleop Keyboard Initialised");
 
   /********************************************************************************
-  ** Execute move() in a loop
+  ** Execute home() and then move() in a loop
   ********************************************************************************/
-
+  rclcpp::sleep_for(std::chrono::milliseconds(1000));
+  home_position();
   update_timer_ = this->create_wall_timer(500ms, std::bind(&OpenManipulatorXToFDemo::move, this));
 }
 
@@ -102,7 +103,7 @@ void OpenManipulatorXToFDemo::move()
   float x =  target - present_kinematic_position_[0];
   std::cout << "POSITION: " << present_kinematic_position_[0] << " Going to " << target << "( move: " << x << ")\n";
 
-  set_task_space_path_from_present_position_only_coordinates(x, 0 , 0, 0.4);
+  set_task_space_path_from_present_position_only(x, 0 , 0, 0.4);
 
   if ((fabs(last_target - target) < 0.01) && target <= 0.33){
     count_to_retrieve++;
@@ -113,14 +114,14 @@ void OpenManipulatorXToFDemo::move()
   
   if (count_to_retrieve >= 8)
   {
-    set_tool_control_bool(false, 1.0);
-    set_task_space_path_from_present_position_only_coordinates(0.0, 0.0 , -0.150, 1.0);
-    set_tool_control_bool(true, 1.0);
-    set_task_space_path_from_present_position_only_coordinates(0.0, 0.0 , 0.150, 1.0);
-    set_joint_space_path_coordinates(-PI/2, present_joint_angle_[1], present_joint_angle_[2], present_joint_angle_[3], 1.0);
-    set_task_space_path_from_present_position_only_coordinates(0.0, 0.0 , -0.150, 1.0);
-    set_tool_control_bool(false, 1.0);
-    set_task_space_path_from_present_position_only_coordinates(0.0, 0.0 , 0.150, 1.0);
+    set_tool_control(false, 1.0);
+    set_task_space_path_from_present_position_only(0.0, 0.0 , -0.150, 1.0);
+    set_tool_control(true, 1.0);
+    set_task_space_path_from_present_position_only(0.0, 0.0 , 0.150, 1.0);
+    set_joint_space_path_from_present(-PI/2, 0.0, 0.0, 0.0, 1.0);
+    set_task_space_path_from_present_position_only(0.0, 0.0 , -0.150, 1.0);
+    set_tool_control(false, 1.0);
+    set_task_space_path_from_present_position_only(0.0, 0.0 , 0.150, 1.0);
     home_position();
     count_to_retrieve = 0;
   }
@@ -132,7 +133,7 @@ void OpenManipulatorXToFDemo::move()
 ** Path functions
 ********************************************************************************/
 
-bool OpenManipulatorXToFDemo::set_joint_space_path_coordinates(double angle1, double angle2, double angle3, double angle4, double path_time)
+bool OpenManipulatorXToFDemo::set_joint_space_path(double angle1, double angle2, double angle3, double angle4, double path_time)
 {
   std::vector<double> joint_angle;
   std::vector<std::string> joint_name;
@@ -160,7 +161,7 @@ bool OpenManipulatorXToFDemo::set_joint_space_path_coordinates(double angle1, do
   return false;
 }
 
-bool OpenManipulatorXToFDemo::set_tool_control_bool(bool state, double path_time)
+bool OpenManipulatorXToFDemo::set_tool_control(bool state, double path_time)
 {
   std::vector<double> joint_angle;
   joint_angle.push_back(state ? -0.01 : 0.01);
@@ -183,7 +184,7 @@ bool OpenManipulatorXToFDemo::set_tool_control_bool(bool state, double path_time
   return false;
 }
 
-bool OpenManipulatorXToFDemo::set_task_space_path_from_present_position_only_coordinates(double dx, double dy, double dz, double path_time)
+bool OpenManipulatorXToFDemo::set_task_space_path_from_present_position_only(double dx, double dy, double dz, double path_time)
 { 
   auto request = std::make_shared<open_manipulator_msgs::srv::SetKinematicsPose::Request>();
   request->planning_group = "gripper";
@@ -207,7 +208,7 @@ bool OpenManipulatorXToFDemo::set_task_space_path_from_present_position_only_coo
   return false;
 }
 
-bool OpenManipulatorXToFDemo::set_joint_space_path_from_present_coordinates(double dangle1, double dangle2, double dangle3, double dangle4, double path_time)
+bool OpenManipulatorXToFDemo::set_joint_space_path_from_present(double dangle1, double dangle2, double dangle3, double dangle4, double path_time)
 {
   std::vector<double> joint_angle;
   std::vector<std::string> joint_name;
@@ -237,11 +238,13 @@ bool OpenManipulatorXToFDemo::set_joint_space_path_from_present_coordinates(doub
 
 bool OpenManipulatorXToFDemo::home_position()
 {
-  set_joint_space_path_coordinates(0.0, -PI/3, PI/9, PI*2/9, 1.0);
-  // set_joint_space_path_coordinates(0.0, 0.0, 0.0, PI/2, 1.0);
+  set_joint_space_path(0.0, -PI/3, PI/9, PI*2/9, 1.0);
+  // set_joint_space_path(0.0, 0.0, 0.0, PI/2, 1.0);
 
-  set_task_space_path_from_present_position_only_coordinates(0.200, 0.0 , -0.05, 2.0);
-  set_tool_control_bool(true, 1.0);
+  set_task_space_path_from_present_position_only(0.200, 0.0 , -0.05, 2.0);
+  set_tool_control(true, 1.0);
+  
+  return false;
 }
 
 }  // namespace open_manipulator_x_tof
@@ -252,37 +255,13 @@ bool OpenManipulatorXToFDemo::home_position()
 int main(int argc, char *argv[])
 {
   rclcpp::init(argc, argv);
+
   auto node = std::make_shared<open_manipulator_x_tof::OpenManipulatorXToFDemo>();
   
-  rclcpp::sleep_for(std::chrono::milliseconds(1000));
-
-  node->home_position();
-
   while (rclcpp::ok()) {
     rclcpp::spin(node);
-  //   for (size_t i = 0; i < N; i++){
-  //     node->set_task_space_path_from_present_position_only_coordinates(0, 0 , 0.100, path_time);
-  //     rclcpp::sleep_for (full);
-  //     node->set_joint_space_path_from_present_coordinates(PI/N, 0, 0, 0, path_time);
-  //     rclcpp::sleep_for (full);
-  //     node->set_task_space_path_from_present_position_only_coordinates(0, 0 , -0.100, path_time);
-  //     rclcpp::sleep_for (full);
-  //     grip = !grip;
-  //     node->set_tool_control_bool(grip, path_time);
-  //     rclcpp::sleep_for (full);
-  //   }
-
-  //   node->set_task_space_path_from_present_position_only_coordinates(0, 0 , 0.200, path_time);
-  //   rclcpp::sleep_for (full);
-  //   node->set_joint_space_path_from_present_coordinates(-PI, 0, 0, 0, 2*path_time);
-  //   rclcpp::sleep_for (2*full);
-  //   node->set_task_space_path_from_present_position_only_coordinates(0, 0 , -0.200, path_time);
-  //   rclcpp::sleep_for (full);
-  //   grip = !grip;
-  //   node->set_tool_control_bool(grip, path_time);
-  //   rclcpp::sleep_for (full);
-  // }
   }
+
   rclcpp::shutdown();
 
   return 0;

@@ -70,10 +70,10 @@ class OpenManipulatorXToFDemo : public rclcpp::Node
   void tof_sensor_callback(const std_msgs::msg::Float32::SharedPtr msg);
   void move();
 
-  bool set_joint_space_path_coordinates(double angle1, double angle2, double angle3, double angle4, double path_time);
-  bool set_task_space_path_from_present_position_only_coordinates(double dx, double dy, double dz, double path_time);
-  bool set_joint_space_path_from_present_coordinates(double dangle1, double dangle2, double dangle3, double dangle4, double path_time);
-  bool set_tool_control_bool(bool state, double path_time);
+  bool set_joint_space_path(double angle1, double angle2, double angle3, double angle4, double path_time);
+  bool set_task_space_path_from_present_position_only(double dx, double dy, double dz, double path_time);
+  bool set_joint_space_path_from_present(double dangle1, double dangle2, double dangle3, double dangle4, double path_time);
+  bool set_tool_control(bool state, double path_time);
 
   bool set_joint_space_path(std::vector<std::string> joint_name, std::vector<double> joint_angle, double path_time);
   bool set_task_space_path_from_present_position_only(std::vector<double> kinematics_pose, double path_time);
