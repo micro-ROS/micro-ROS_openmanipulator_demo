@@ -49,7 +49,7 @@ class OpenManipulatorXToFDemo : public rclcpp::Node
   std::vector<double> present_joint_angle_;
   std::vector<double> present_kinematic_position_;
   bool going = false;
-  float target, last_target;
+  double target, last_target;
   int count_to_retrieve;
 
 

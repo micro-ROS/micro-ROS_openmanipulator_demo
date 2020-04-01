@@ -53,7 +53,8 @@ OpenManipulatorXToFDemo::OpenManipulatorXToFDemo()
   ********************************************************************************/
   rclcpp::sleep_for(std::chrono::milliseconds(1000));
   home_position();
-  update_timer_ = this->create_wall_timer(500ms, std::bind(&OpenManipulatorXToFDemo::move, this));
+  target = 0.250;
+  update_timer_ = this->create_wall_timer(300ms, std::bind(&OpenManipulatorXToFDemo::move, this));
 }
 
 OpenManipulatorXToFDemo::~OpenManipulatorXToFDemo() 
@@ -89,8 +90,11 @@ void OpenManipulatorXToFDemo::kinematics_pose_callback(const open_manipulator_ms
 
 void OpenManipulatorXToFDemo::tof_sensor_callback(const std_msgs::msg::Float32::SharedPtr msg)
 {
-  target =  msg->data + 0.040;
-  target = (target > 0.33) ? 0.33 : target;
+  double raw =  msg->data + 0.040;
+  raw = (raw > 0.33) ? 0.33 : raw;
+
+  //LPF
+  target = target - (0.05 * (target - raw));
 }
 
 
@@ -100,10 +104,19 @@ void OpenManipulatorXToFDemo::tof_sensor_callback(const std_msgs::msg::Float32::
 
 void OpenManipulatorXToFDemo::move()
 { 
-  float x =  target - present_kinematic_position_[0];
-  std::cout << "POSITION: " << present_kinematic_position_[0] << " Going to " << target << "( move: " << x << ")\n";
 
-  set_task_space_path_from_present_position_only(x, 0 , 0, 0.4);
+  // update_timer_->cancel();
+
+  float x =  target - present_kinematic_position_[0];
+
+  double path_time = 2*euler_distance(x, 0.0, 0.0, 0.0, 0.0, 0.0);
+  path_time = (path_time > 0.1) ? path_time : 0.1; 
+  path_time = 0.2;
+
+  std::cout << "POSITION: " << present_kinematic_position_[0] << " Going to " << target << " (move: " << x << " duration: " << path_time << ")\n";
+
+  set_task_space_path_from_present_position_only(x, 0.0, 0.0, path_time);
+
 
   if ((fabs(last_target - target) < 0.01) && target <= 0.33){
     count_to_retrieve++;
@@ -112,7 +125,7 @@ void OpenManipulatorXToFDemo::move()
     count_to_retrieve = 0;
   }
   
-  if (count_to_retrieve >= 8)
+  if (0 && count_to_retrieve >= 8)
   {
     set_tool_control(false, 1.0);
     set_task_space_path_from_present_position_only(0.0, 0.0 , -0.150, 1.0);
@@ -127,6 +140,9 @@ void OpenManipulatorXToFDemo::move()
   }
   
   last_target = target;
+
+  // update_timer_ = this->create_wall_timer(std::chrono::milliseconds(int(path_time* 1000)), std::bind(&OpenManipulatorXToFDemo::move, this));
+
 }
 
 /********************************************************************************
@@ -219,13 +235,8 @@ bool OpenManipulatorXToFDemo::set_task_space_path_from_present_position_only(dou
   request->kinematics_pose.pose.position.x = dx;
   request->kinematics_pose.pose.position.y = dy;
   request->kinematics_pose.pose.position.z = dz;
-
-  double path_time2 = 4*euler_distance(dx, dy, dz, present_kinematic_position_[0], present_kinematic_position_[1], present_kinematic_position_[2]);
   
-  path_time2 = 1;
-  std::cout << "path_time2: " << path_time2 << "\n";
-
-  request->path_time = path_time2;
+  request->path_time = path_time;
 
   using ServiceResponseFuture = rclcpp::Client<open_manipulator_msgs::srv::SetKinematicsPose>::SharedFuture;
   auto response_received_callback = [this](ServiceResponseFuture future) 
@@ -237,7 +248,7 @@ bool OpenManipulatorXToFDemo::set_task_space_path_from_present_position_only(dou
   going = true;
   auto future_result = goal_task_space_path_from_present_position_only_client_->async_send_request(request, response_received_callback);
 
-  rclcpp::sleep_for(std::chrono::milliseconds(int(path_time2 * 1000)));
+  rclcpp::sleep_for(std::chrono::milliseconds(int(path_time * 1000)));
 
   return false;
 }
