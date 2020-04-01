@@ -20,6 +20,7 @@
 #define OPEN_MANIPULATOR_X_TELEOP_KEYBOARD_HPP_
 
 #include <termios.h>
+#include <math.h> 
 
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
@@ -35,11 +36,11 @@
 
 namespace open_manipulator_x_teleop_keyboard
 {
-class OpenManipulatorXTeleopKeyboard : public rclcpp::Node
+class OpenManipulatorXToFDemo : public rclcpp::Node
 {
  public:
-  OpenManipulatorXTeleopKeyboard();
-  virtual ~OpenManipulatorXTeleopKeyboard();
+  OpenManipulatorXToFDemo();
+  virtual ~OpenManipulatorXToFDemo();
 
  public:
   /*****************************************************************************
@@ -48,7 +49,9 @@ class OpenManipulatorXTeleopKeyboard : public rclcpp::Node
   std::vector<double> present_joint_angle_;
   std::vector<double> present_kinematic_position_;
   bool going = false;
-  float target;
+  float target, last_target;
+  int count_to_retrieve;
+
 
   /*****************************************************************************
   ** ROS Timer and callback functions
@@ -76,6 +79,7 @@ class OpenManipulatorXTeleopKeyboard : public rclcpp::Node
   bool set_task_space_path_from_present_position_only(std::vector<double> kinematics_pose, double path_time);
   bool set_tool_control(std::vector<double> joint_angle);
   bool set_joint_space_path_from_present(std::vector<std::string> joint_name, std::vector<double> joint_angle, double path_time);
+  bool home_position();
 
   /*****************************************************************************
   ** ROS Clients
