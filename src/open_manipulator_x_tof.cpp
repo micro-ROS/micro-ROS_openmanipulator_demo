@@ -1,4 +1,4 @@
-#include "open_manipulator_x_teleop/open_manipulator_x_teleop_keyboard.hpp"
+#include "open_manipulator_x_tof/open_manipulator_x_tof.hpp"
 
 using namespace std::placeholders;
 using namespace std::chrono_literals;
@@ -6,7 +6,7 @@ using namespace std::chrono_literals;
 namespace open_manipulator_x_teleop_keyboard
 {
 OpenManipulatorXTeleopKeyboard::OpenManipulatorXTeleopKeyboard()
-: Node("open_manipulator_x_teleop_keyboard")
+: Node("open_manipulator_x_tof")
 {
   /********************************************************************************
   ** Initialise variables
