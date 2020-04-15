@@ -1,0 +1,46 @@
+@startuml
+skinparam monochrome true
+
+
+node <img:https://github.com/micro-ROS/micro-ROS_openmanipulator_demo/raw/master/assets/images/rpi.png> as rpi {
+    node "Open Manipulator Controller" as om_cont
+    'node "Demo Logic" as demo_logic
+    node "micro-ROS Agent" as microROS
+    [<img:https://github.com/micro-ROS/micro-ROS_openmanipulator_demo/raw/master/assets/images/ros2_icon.png>]as ros2
+}
+
+
+
+[<img:https://github.com/micro-ROS/micro-ROS_openmanipulator_demo/raw/master/assets/images/olimex.jpg>] as olimex
+[<img:https://github.com/micro-ROS/micro-ROS_openmanipulator_demo/raw/master/assets/images/tof_sensor2.jpeg>] as tof_sensor
+[<img:https://github.com/micro-ROS/micro-ROS_openmanipulator_demo/raw/master/assets/images/openmanipulator.jpg>] as open_manipulator
+[<img:https://github.com/micro-ROS/micro-ROS_openmanipulator_demo/raw/master/assets/images/rviz_complete.png>] as rviz
+
+
+note right of rpi
+    | Topic | Type |
+    | /sensors/tof | Float32 |
+    | /open_manipulator_x/joint_states | JointState |
+    | /open_manipulator_x/kinematics_pose | KinematicsPose |
+    
+    | Service | Type |
+    | /open_manipulator_x/goal_joint_space_path | SetJointPosition |
+    | /open_manipulator_x/goal_tool_control | SetJointPosition |
+    | /open_manipulator_x/goal_task_space_path_\nfrom_present_position_only | SetKinematicsPose |
+    | /open_manipulator_x/goal_joint_space_path_from_present | SetJointPosition |
+
+end note
+
+
+tof_sensor <-left-> olimex: I2C
+olimex <-up-> microROS: <b>micro-ROS</b> \n USB-Serial
+
+'ros2 <-up-> demo_logic: ROS2
+microROS <-left-> ros2: ROS2
+ros2 <-left-> om_cont: ROS2 
+ros2 <-down-> rviz: ROS2 
+
+om_cont <-down-> open_manipulator: USB
+
+@endutml
+@enduml

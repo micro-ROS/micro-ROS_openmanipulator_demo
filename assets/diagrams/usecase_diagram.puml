@@ -1,0 +1,46 @@
+[plantuml, svg, %interactive]
+@startuml 
+    skinparam backgroundColor #FFF
+    skinparam monochrome true
+
+    participant "ToF sensor" as tof
+    participant "Olimex board" as olimex
+    box "Raspberry Pi"
+        participant "micro-ROS Agent" as urosagent
+        participant "ROS 2" as ros2
+        participant "OpenManimulatorX\nController" as openmanipulator_sf
+    end box
+    participant "OpenManimulatorX" as openmanipulator
+    box "External PC"
+        participant "RViz" as rviz
+    end box
+
+
+    activate ros2
+
+    olimex -> urosagent: **micro-ROS**\nCreate sensor publisher\n ///sensor/tof//
+    urosagent -> ros2: **ROS2**\n create sensor publisher\n ///sensor/tof//
+    group Sensor measurement loop
+        olimex -> tof: Retrieve measurement 
+        tof -> olimex: Measurement
+        olimex -> urosagent: **micro-ROS**\npublish\n ///sensor/tof//
+        urosagent -> ros2: **ROS2**\npublish\n ///sensor/tof//
+        olimex -> olimex: Sleep
+    end
+
+    openmanipulator_sf -> ros2: **ROS2**\ncreate sensor subscriber\n ///sensor/tof//
+    openmanipulator_sf -> ros2: **ROS2**\ncreate robotic arm\nstate publishers\n ///sensor/tof//
+
+    group Robotic arm operation loop
+        ros2 -> openmanipulator_sf: **ROS2**\nsubscription\n ///sensor/tof//
+        openmanipulator_sf -> openmanipulator_sf: Calculate new\ntrajectory
+        openmanipulator_sf -> openmanipulator: Move to position
+        alt measurement steady\nfor N seconds
+            openmanipulator_sf -> openmanipulator: Grab target
+        end
+        openmanipulator_sf -> ros2: **ROS2**\npublish\n//robot state//
+        ros2 -> rviz: **ROS2**\nsubscription\n//robot state//
+
+    end
+
+@enduml
