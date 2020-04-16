@@ -19,6 +19,7 @@ find_package(ament_cmake REQUIRED)
 find_package(open_manipulator_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
 
 ################################################################################
 # Build
@@ -32,6 +33,7 @@ set(dependencies
   "rclcpp"
   "sensor_msgs"
   "std_msgs"
+  "visualization_msgs"
 )
 
 set(EXEC_NAME "open_manipulator_x_tof")
@@ -54,4 +56,5 @@ ament_export_dependencies(open_manipulator_msgs)
 ament_export_dependencies(rclcpp)
 ament_export_dependencies(sensor_msgs)
 ament_export_dependencies(std_msgs)
+ament_export_dependencies(visualization_msgs)
 ament_package()

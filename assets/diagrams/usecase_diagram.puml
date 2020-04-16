@@ -8,7 +8,7 @@
     box "Raspberry Pi"
         participant "micro-ROS Agent" as urosagent
         participant "ROS 2" as ros2
-        participant "OpenManimulatorX\nController" as openmanipulator_sf
+        participant "Use case logic" as openmanipulator_sf
     end box
     participant "OpenManimulatorX" as openmanipulator
     box "External PC"

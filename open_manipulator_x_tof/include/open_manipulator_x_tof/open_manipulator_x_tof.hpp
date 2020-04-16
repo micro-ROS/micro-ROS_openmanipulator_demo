@@ -8,13 +8,18 @@
 #include <sensor_msgs/msg/joint_state.hpp>
 #include <sensor_msgs/msg/joy.hpp>
 #include <std_msgs/msg/float32.hpp>
+#include <visualization_msgs/msg/marker.hpp>
 
 #include "open_manipulator_msgs/srv/set_joint_position.hpp"
 #include "open_manipulator_msgs/srv/set_kinematics_pose.hpp"
 
 #define PI 3.14159265359
 #define NUM_OF_JOINT 4
-
+#define HEAD_OFFSET 0.050
+#define MAX_DISTANCE 0.33
+#define GRAB_THRESHOLD 0.02
+#define MOVE_LOOP_MS 500
+#define GRAB_WAIT_TIME_MS 4000
 
 namespace open_manipulator_x_tof
 {
@@ -30,9 +35,10 @@ class OpenManipulatorXToFDemo : public rclcpp::Node
   *****************************************************************************/
   std::vector<double> present_joint_angle_;
   std::vector<double> present_kinematic_position_;
-  bool going = false;
-  float target, last_target;
-  int count_to_retrieve;
+  bool grabbing = false;
+  std::thread moving;
+  float target;
+  
 
 
   /*****************************************************************************
@@ -44,8 +50,11 @@ class OpenManipulatorXToFDemo : public rclcpp::Node
   ** ROS Subscribers, Callback Functions and Relevant Functions
   *****************************************************************************/
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_states_sub_;
-  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr tof_sub;
+  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr tof_sub_;
   rclcpp::Subscription<open_manipulator_msgs::msg::KinematicsPose>::SharedPtr kinematics_pose_sub_;
+  
+  rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr tof_marker_pub_;
+  visualization_msgs::msg::Marker tof_marker;
 
   void joint_states_callback(const sensor_msgs::msg::JointState::SharedPtr msg);
   void kinematics_pose_callback(const open_manipulator_msgs::msg::KinematicsPose::SharedPtr msg);

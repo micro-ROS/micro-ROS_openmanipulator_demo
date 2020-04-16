@@ -3,7 +3,7 @@ skinparam monochrome true
 
 
 node <img:https://github.com/micro-ROS/micro-ROS_openmanipulator_demo/raw/master/assets/images/rpi.png> as rpi {
-    node "Open Manipulator Controller" as om_cont
+    node "Use case logic and\nOpen Manipulator Controller" as om_cont
     'node "Demo Logic" as demo_logic
     node "micro-ROS Agent" as microROS
     [<img:https://github.com/micro-ROS/micro-ROS_openmanipulator_demo/raw/master/assets/images/ros2_icon.png>]as ros2
