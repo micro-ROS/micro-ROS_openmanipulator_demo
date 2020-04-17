@@ -63,6 +63,7 @@ sudo apt update && sudo apt install ros-dashing-ros-base
  6. Install required Robotis ROS 2 controlling packages:
    
 ```bash
+source /opt/ros/dashing/setup.bash 
 sudo apt install python3-argcomplete python3-colcon-common-extensions libboost-system-dev
 mkdir -p ~/robotis_ws/src && cd ~/robotis_ws/src
 git clone -b ros2 https://github.com/ROBOTIS-GIT/DynamixelSDK.git  
@@ -79,6 +80,7 @@ colcon build --symlink-install --parallel-workers 1
  7. Install a micro-ROS Agent:
 
 ```bash
+source /opt/ros/dashing/setup.bash 
 sudo apt install python-rosdep2 python3-vcstool libncurses5-dev libcurl4-openssl-dev libasio-dev clang-tidy
 source /opt/ros/dashing/setup.bash
 mkdir ~/uros_ws && cd ~/uros_ws
@@ -87,7 +89,6 @@ sudo rosdep init && rosdep update && rosdep install --from-path src --ignore-src
 colcon build
 source install/local_setup.bash
 ros2 run micro_ros_setup create_agent_ws.sh   //GIVES ERROR BUT WORKS
-rm -rf src/drive_base/
 
 # This may take a LONG while (1 hour aprox)
 colcon build --meta src --parallel-workers 1
@@ -160,7 +161,10 @@ source /opt/ros/dashing/setup.bash
 source install/local_setup.bash
 ros2 run micro_ros_agent micro_ros_agent serial --dev /dev/serial/by-id/usb-ZEPHYR_Zephyr_CDC_ACM_sample_3536510100290035-if00 -v6
 ```
+ 
+ 4. To visualize models on RViz  
 
+ros2 launch open_manipulator_x_description open_manipulator_x_rviz.launch.py 
 
 
 ---------------------------------

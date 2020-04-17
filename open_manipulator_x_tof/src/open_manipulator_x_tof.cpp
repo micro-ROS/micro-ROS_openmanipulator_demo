@@ -36,17 +36,30 @@ OpenManipulatorXToFDemo::OpenManipulatorXToFDemo()
   ********************************************************************************/
   tof_marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("sensors/tof/marker", 1);
   tof_marker = visualization_msgs::msg::Marker();
+
+  tof_marker_colors[0] = {1.0, 0.0, 0.0};
+  tof_marker_colors[1] = {0.0, 1.0, 0.0};
+  tof_marker_colors[2] = {0.0, 0.0, 1.0};
+  tof_marker_colors[3] = {1.0, 0.0, 0.0};
+  tof_marker_colors[4] = {0.0, 1.0, 0.0};
+  tof_marker_colors[5] = {0.0, 0.0, 1.0};
+
   tof_marker.header.frame_id = "world";
   tof_marker.id = 0;
-  tof_marker.type = 1;
+  tof_marker.type = 3; // 1 square, 2 sphere, 3 cylinder
   tof_marker.color.a = 1;
   tof_marker.color.r = 1;
-  tof_marker.scale.x = 0.06;
+  tof_marker.scale.x = 0.04;
   tof_marker.scale.y = 0.04;
-  tof_marker.scale.z = 0.1;
+  tof_marker.scale.z = OBJECT_HEIGHT;
   tof_marker.pose.position.x = 0.1;
   tof_marker.pose.position.y = 0;
   tof_marker.pose.position.z = tof_marker.scale.z/2;
+
+  // Delete all markers
+  tof_marker.action = 3;
+  tof_marker_pub_->publish(tof_marker);
+  tof_marker.action = 0;
 
   grabbing = false;
 
@@ -114,17 +127,20 @@ void OpenManipulatorXToFDemo::tof_sensor_callback(const std_msgs::msg::Float32::
   target =  msg->data + HEAD_OFFSET;
   target = (target > MAX_DISTANCE) ? MAX_DISTANCE : target;
 
-  if (!grabbing && msg->data < MAX_DISTANCE){
-    tof_marker.pose.position.x = msg->data + tof_marker.scale.x/2;
+  if (!grabbing && target > MAX_DISTANCE){
+      tof_marker.action = 2; //Delete marker
+  }else if (!grabbing){
+    tof_marker.action = 0;
+    tof_marker.pose.position.x = target + tof_marker.scale.x/2;
     tof_marker.pose.position.y = 0;
     tof_marker.pose.position.z = tof_marker.scale.z/2;
-    tof_marker_pub_->publish(tof_marker);
-  }else if(grabbing){
+  }else{
+    tof_marker.action = 0;
     tof_marker.pose.position.x = present_kinematic_position_[0];
     tof_marker.pose.position.y = present_kinematic_position_[1];
     tof_marker.pose.position.z = present_kinematic_position_[2];
-    tof_marker_pub_->publish(tof_marker);
   }
+  tof_marker_pub_->publish(tof_marker);
 }
 
 
@@ -134,56 +150,89 @@ void OpenManipulatorXToFDemo::tof_sensor_callback(const std_msgs::msg::Float32::
 
 void OpenManipulatorXToFDemo::move()
 {  
-  int count_to_retrieve = 0;
+  // int count_to_retrieve = 0;
+  auto start = std::chrono::steady_clock::now();
+
   float last_target = 0;
 
   int positions = 3;
   int current_position = 0;
   int current_level = 0;
+  
+  while (rclcpp::ok()){    
 
-
-  while (rclcpp::ok()){
+    // Move the difference between target and current position
     float x =  target - present_kinematic_position_[0];
     std::cout << "POSITION: " << present_kinematic_position_[0] << " Going to " << target << "( move: " << x << ")\n";
 
-    set_task_space_path_from_present_position_only(x, 0 , 0, (MOVE_LOOP_MS-100.0)/1000.0);
+    set_task_space_path_from_present_position_only(x, 0 , 0, MOVE_LOOP_MS/1000.0);
 
-    if ((fabs(last_target - target) < GRAB_THRESHOLD) && target <= MAX_DISTANCE && target != 0){
-      count_to_retrieve++;
-      std::cout << "count_to_retrieve: " << count_to_retrieve << "\n";
-    }else{
-      count_to_retrieve = 0;
+    // Check if current position is stable and valid for grabbing a target
+    if (!((fabs(last_target - target) < GRAB_THRESHOLD) && target <= MAX_DISTANCE && target != 0)){
+      start = std::chrono::steady_clock::now();
     }
     
-    if (count_to_retrieve >= GRAB_WAIT_TIME_MS/MOVE_LOOP_MS){
-      set_tool_control(false, 1.0);
-      set_task_space_path_from_present_position_only(0.0, 0.0 , -0.100, 0.5);
-      set_tool_control(true, 1.0);
+    // If elapsed time since las 'start' reset is greater than wait time, start grabbing procedure
+    if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count() > GRAB_WAIT_TIME_MS){
+      if(current_position >= 3){
+        float aux_target = target;
+        set_joint_space_path_from_present(-PI/15, 0.0, 0.0, 0.0, 0.2);
+        set_joint_space_path_from_present(2*PI/15, 0.0, 0.0, 0.0, 0.2);
+        set_joint_space_path_from_present(-PI/15, 0.0, 0.0, 0.0, 0.2);
+        start = std::chrono::steady_clock::now();
+        target = aux_target;
+      }else{
+        
+        // Open the tool
+        set_tool_control(false, 1.0);
 
-      // Z = 0.63
-      
-      grabbing = true;
-      set_task_space_path_from_present_position_only(0.0, 0.0 , 0.150, 0.5);
+        // Z movement: Go to half of OBJECT_HEIGHT from current position in 1 second
+        set_task_space_path_from_present_position_only(0.0, 0.0 , (OBJECT_HEIGHT/2) - present_kinematic_position_[2], 1.0);
 
-      // set_joint_space_path_from_present(-PI/2, 0.0, 0.0, 0.0, 1.0);
+        // Close the tool
+        set_tool_control(true, 1.0);
 
-      set_joint_space_path(-PI/2, -PI/3, PI/9, PI*2/9, 1.0);
-      std::cout << "grab position: " << current_position << "\n";
+        float grabbing_height = present_kinematic_position_[2];
+        grabbing = true;
 
-      set_task_space_path_from_present_position_only(0.0, -0.220 + (0.05 * (current_position % positions)) , -0.05, 1.0);
-      current_position++;
+        // Z movement: Go up to 150 mm from current position
+        set_task_space_path_from_present_position_only(0.0, 0.0 , 0.150 - present_kinematic_position_[2], 1.0);
 
-      set_task_space_path_from_present_position_only(0.0, 0.0 , -0.100 + (0.12 * current_level), 2.0);
-      current_level = ceil(current_position / positions);
-      
-      set_tool_control(false, 1.0);
-      tof_marker.id++;
-      grabbing = false;
-      set_task_space_path_from_present_position_only(0.0, 0.0 , 0.150, 1.0);
-      home_position();
-      count_to_retrieve = 0;
+
+        // Move to a known position in dispaching area
+        set_joint_space_path(-PI/2, -PI/3, PI/9, PI*2/9, 1.0);
+        
+        // Y movement: Go to -210 mm less 50 mm per position: -210 mm, -170 mm, -120 mm
+        // Z movement: Go to grabbing_height (less 20 mm) from current position plus 120 mm for each level
+        set_task_space_path_from_present_position_only( 0.0, 
+                                                        -0.210 + (0.052 * (current_position % positions)), 
+                                                        grabbing_height - 0.02 - present_kinematic_position_[2] + (0.13 * current_level), 
+                                                        2.0);
+        
+        // Open the tool
+        set_tool_control(false, 1.0);
+
+        tof_marker.id++;
+        tof_marker.color.r = tof_marker_colors[tof_marker.id][0];
+        tof_marker.color.g = tof_marker_colors[tof_marker.id][1];
+        tof_marker.color.b = tof_marker_colors[tof_marker.id][2];
+        grabbing = false;
+
+        // If level is not 0 (base level), prevent from collision with the object
+        if (current_level > 0){
+          set_joint_space_path(present_joint_angle_[0], present_joint_angle_[1], present_joint_angle_[2], -PI/2, 1.0);
+        }
+        current_level = (current_level == 0) ? 1 : 0;
+        current_position = (current_level == 1) ? current_position : current_position + 1;
+
+        // Go up 150 mm and home position
+        set_task_space_path_from_present_position_only(0.0, 0.0 , 0.150, 1.0);
+        home_position();
+        start = std::chrono::steady_clock::now();
+      }
     }
-    rclcpp::sleep_for(std::chrono::milliseconds(100));
+
+    // rclcpp::sleep_for(std::chrono::milliseconds(100));
 
     last_target = target;
   }
@@ -298,8 +347,8 @@ bool OpenManipulatorXToFDemo::set_task_space_path_from_present_position_only(dou
 bool OpenManipulatorXToFDemo::home_position()
 {
   set_joint_space_path(0.0, -PI/3, PI/9, PI*2/9, 1.0);
-  set_task_space_path_from_present_position_only(0.200, 0.0 , -0.05, 2.0);
-  set_tool_control(true, 1.0);
+  set_task_space_path_from_present_position_only(target, 0.0 , -0.05, 2.0);
+  // set_tool_control(true, 1.0);
 
   return false;
 }
@@ -317,7 +366,7 @@ double OpenManipulatorXToFDemo::euler_distance(double x1, double y1, double z1, 
 
 /********************************************************************************
 ** Main
-************************************************************************untu ********/
+********************************************************************************/
 int main(int argc, char *argv[])
 {
   rclcpp::init(argc, argv);

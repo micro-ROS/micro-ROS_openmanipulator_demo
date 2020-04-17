@@ -18,8 +18,10 @@
 #define HEAD_OFFSET 0.050
 #define MAX_DISTANCE 0.33
 #define GRAB_THRESHOLD 0.02
-#define MOVE_LOOP_MS 500
+#define MOVE_LOOP_MS 400
 #define GRAB_WAIT_TIME_MS 4000
+
+#define OBJECT_HEIGHT 0.12
 
 namespace open_manipulator_x_tof
 {
@@ -39,8 +41,6 @@ class OpenManipulatorXToFDemo : public rclcpp::Node
   std::thread moving;
   float target;
   
-
-
   /*****************************************************************************
   ** ROS Timer and callback functions
   *****************************************************************************/
@@ -55,6 +55,7 @@ class OpenManipulatorXToFDemo : public rclcpp::Node
   
   rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr tof_marker_pub_;
   visualization_msgs::msg::Marker tof_marker;
+  std::array<std::array<float,3>,6> tof_marker_colors;
 
   void joint_states_callback(const sensor_msgs::msg::JointState::SharedPtr msg);
   void kinematics_pose_callback(const open_manipulator_msgs::msg::KinematicsPose::SharedPtr msg);
