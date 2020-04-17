@@ -16,6 +16,8 @@ OpenManipulatorXToFDemo::OpenManipulatorXToFDemo()
   ********************************************************************************/
   present_joint_angle_.resize(NUM_OF_JOINT);
   present_kinematic_position_.resize(3);
+  filtered_target = 0;
+  target = 0;
 
   /********************************************************************************
   ** Initialise Subscribers
@@ -125,20 +127,21 @@ void OpenManipulatorXToFDemo::kinematics_pose_callback(const open_manipulator_ms
 void OpenManipulatorXToFDemo::tof_sensor_callback(const std_msgs::msg::Float32::SharedPtr msg)
 {
   target =  msg->data + HEAD_OFFSET;
-  target = (target > MAX_DISTANCE) ? MAX_DISTANCE : target;
+  filtered_target = filtered_target - (0.18 * (filtered_target - target));
+  filtered_target = (filtered_target > MAX_DISTANCE) ? MAX_DISTANCE : filtered_target;
 
   if (!grabbing && target > MAX_DISTANCE){
       tof_marker.action = 2; //Delete marker
   }else if (!grabbing){
     tof_marker.action = 0;
-    tof_marker.pose.position.x = target + tof_marker.scale.x/2;
+    tof_marker.pose.position.x = filtered_target + tof_marker.scale.x/2;
     tof_marker.pose.position.y = 0;
     tof_marker.pose.position.z = tof_marker.scale.z/2;
   }else{
     tof_marker.action = 0;
     tof_marker.pose.position.x = present_kinematic_position_[0];
     tof_marker.pose.position.y = present_kinematic_position_[1];
-    tof_marker.pose.position.z = present_kinematic_position_[2];
+    tof_marker.pose.position.z = present_kinematic_position_[2] - (grabbing_height-(OBJECT_HEIGHT/2));
   }
   tof_marker_pub_->publish(tof_marker);
 }
@@ -162,25 +165,25 @@ void OpenManipulatorXToFDemo::move()
   while (rclcpp::ok()){    
 
     // Move the difference between target and current position
-    float x =  target - present_kinematic_position_[0];
-    std::cout << "POSITION: " << present_kinematic_position_[0] << " Going to " << target << "( move: " << x << ")\n";
+    float x =  filtered_target - present_kinematic_position_[0];
+    std::cout << "POSITION: " << present_kinematic_position_[0] << " Going to " << filtered_target << "( move: " << x << ")\n";
 
     set_task_space_path_from_present_position_only(x, 0 , 0, MOVE_LOOP_MS/1000.0);
 
     // Check if current position is stable and valid for grabbing a target
-    if (!((fabs(last_target - target) < GRAB_THRESHOLD) && target <= MAX_DISTANCE && target != 0)){
+    if (!(fabs(last_target - filtered_target) < GRAB_THRESHOLD) || !(filtered_target <= MAX_DISTANCE) || !(filtered_target != 0)){
       start = std::chrono::steady_clock::now();
     }
     
     // If elapsed time since las 'start' reset is greater than wait time, start grabbing procedure
     if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count() > GRAB_WAIT_TIME_MS){
       if(current_position >= 3){
-        float aux_target = target;
+        float aux_target = filtered_target;
         set_joint_space_path_from_present(-PI/15, 0.0, 0.0, 0.0, 0.2);
         set_joint_space_path_from_present(2*PI/15, 0.0, 0.0, 0.0, 0.2);
         set_joint_space_path_from_present(-PI/15, 0.0, 0.0, 0.0, 0.2);
         start = std::chrono::steady_clock::now();
-        target = aux_target;
+        filtered_target = aux_target;
       }else{
         
         // Open the tool
@@ -192,7 +195,7 @@ void OpenManipulatorXToFDemo::move()
         // Close the tool
         set_tool_control(true, 1.0);
 
-        float grabbing_height = present_kinematic_position_[2];
+        grabbing_height = present_kinematic_position_[2];
         grabbing = true;
 
         // Z movement: Go up to 150 mm from current position
@@ -205,7 +208,7 @@ void OpenManipulatorXToFDemo::move()
         // Y movement: Go to -210 mm less 50 mm per position: -210 mm, -170 mm, -120 mm
         // Z movement: Go to grabbing_height (less 20 mm) from current position plus 120 mm for each level
         set_task_space_path_from_present_position_only( 0.0, 
-                                                        -0.210 + (0.054 * (current_position % positions)), 
+                                                        -0.200 + (0.055 * (current_position % positions)), 
                                                         grabbing_height - 0.02 - present_kinematic_position_[2] + (0.135 * current_level), 
                                                         2.0);
         
@@ -234,7 +237,7 @@ void OpenManipulatorXToFDemo::move()
 
     // rclcpp::sleep_for(std::chrono::milliseconds(100));
 
-    last_target = target;
+    last_target = filtered_target;
   }
 }
 

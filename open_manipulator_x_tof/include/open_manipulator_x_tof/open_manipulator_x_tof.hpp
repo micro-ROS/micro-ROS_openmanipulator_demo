@@ -40,7 +40,9 @@ class OpenManipulatorXToFDemo : public rclcpp::Node
   bool grabbing = false;
   std::thread moving;
   float target;
-  
+  float filtered_target;
+  float grabbing_height;
+
   /*****************************************************************************
   ** ROS Timer and callback functions
   *****************************************************************************/
