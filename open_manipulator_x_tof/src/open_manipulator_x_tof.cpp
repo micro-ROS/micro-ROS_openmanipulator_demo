@@ -205,8 +205,8 @@ void OpenManipulatorXToFDemo::move()
         // Y movement: Go to -210 mm less 50 mm per position: -210 mm, -170 mm, -120 mm
         // Z movement: Go to grabbing_height (less 20 mm) from current position plus 120 mm for each level
         set_task_space_path_from_present_position_only( 0.0, 
-                                                        -0.210 + (0.052 * (current_position % positions)), 
-                                                        grabbing_height - 0.02 - present_kinematic_position_[2] + (0.13 * current_level), 
+                                                        -0.210 + (0.054 * (current_position % positions)), 
+                                                        grabbing_height - 0.02 - present_kinematic_position_[2] + (0.135 * current_level), 
                                                         2.0);
         
         // Open the tool
