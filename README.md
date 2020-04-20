@@ -15,7 +15,7 @@ The workflow of the use case is as follows:
 
 As shown in the following diagram, one of the advantages of using micro-ROS as a ROS 2 complement is that tools such as [RViz](http://wiki.ros.org/rviz) are enabled. In this case, an external computer can be used to check RViz visualizations of the complete system: 
 
-[](https://raw.githubusercontent.com/micro-ROS/micro-ROS_openmanipulator_demo/master/assets/images/diagram1.png)
+![](https://raw.githubusercontent.com/micro-ROS/micro-ROS_openmanipulator_demo/master/assets/images/diagram1.png | width=400)
 <!-- ![](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/micro-ROS/micro-ROS_openmanipulator_demo/master/assets/diagrams/entities_diagram.puml) -->
 
 
