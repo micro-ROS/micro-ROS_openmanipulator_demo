@@ -11,12 +11,12 @@ The workflow of the use case is as follows:
  - some Robotis ROS 2 packages will be controlling the kinematics of the robotic arm and listening to the defined controlling ROS 2 services (learn more about them [here](http://emanual.robotis.com/docs/en/platform/openmanipulator_x/ros2_controller_package/#service)). For the sake of simplicity, these packages will also run in the same Raspberry Pi board.
  - another ROS 2 package (the one found in this repo) will be in charge of commanding the robotic arm based on the ToF measurements. The demo logic is contained in this package and it will move the robotic arm to the target object position and grab it when a steady position is detected.
 
-[](https://raw.githubusercontent.com/micro-ROS/micro-ROS_openmanipulator_demo/master/assets/images/diagram1.png)
-<!-- ![](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/micro-ROS/micro-ROS_openmanipulator_demo/master/assets/diagrams/usecase_diagram.puml) -->
+![](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/micro-ROS/micro-ROS_openmanipulator_demo/master/assets/diagrams/usecase_diagram.puml)
 
 As shown in the following diagram, one of the advantages of using micro-ROS as a ROS 2 complement is that tools such as [RViz](http://wiki.ros.org/rviz) are enabled. In this case, an external computer can be used to check RViz visualizations of the complete system: 
 
-![](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/micro-ROS/micro-ROS_openmanipulator_demo/master/assets/diagrams/entities_diagram.puml)
+[](https://raw.githubusercontent.com/micro-ROS/micro-ROS_openmanipulator_demo/master/assets/images/diagram1.png)
+<!-- ![](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/micro-ROS/micro-ROS_openmanipulator_demo/master/assets/diagrams/entities_diagram.puml) -->
 
 
 ## Hardware
