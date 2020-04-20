@@ -73,6 +73,7 @@ git clone -b ros2 https://github.com/ROBOTIS-GIT/open_manipulator.git
 git clone -b ros2 https://github.com/ROBOTIS-GIT/open_manipulator_msgs.git  
 git clone -b ros2 https://github.com/ROBOTIS-GIT/open_manipulator_dependencies.git  
 git clone -b ros2 https://github.com/ROBOTIS-GIT/robotis_manipulator.git 
+git clone https://github.com/micro-ROS/micro-ROS_openmanipulator_demo
 cd ~/robotis_ws/
 
 # This may take a while
@@ -147,7 +148,7 @@ ros2 run micro_ros_setup flash_firmware.sh
  1. Connect the Raspberry Pi to Robotis U2D2. Make sure that this board is connected to Robotis U2D2 Power Hub, Robotis OpenMANIPULATOR-X Power Supply and Robotis OpenMANIPULATOR-X itself. Detailed instructions can be found [here](http://emanual.robotis.com/docs/en/platform/openmanipulator_x/ros2_setup/#ros-setup)
 (TODO: image of this connection) 
  2. Connect the Pimoroni VL53LX ToF sensor to Olimex STM32-E407 board and the Olimex board to the Raspberry Pi using  mini-USB OTG 2 connector.
- 3. Inside a Raspberry Pi run these two commands in different command lines:
+ 3. Inside a Raspberry Pi run these three commands in different command lines:
 
 ```bash
 # First command line
@@ -161,89 +162,22 @@ cd ~/uros_ws/
 source /opt/ros/dashing/setup.bash
 source install/local_setup.bash
 ros2 run micro_ros_agent micro_ros_agent serial --dev /dev/serial/by-id/usb-ZEPHYR_Zephyr_CDC_ACM_sample_3536510100290035-if00 -v6
+
+# Third command line
+cd ~/robotis_ws/
+source /opt/ros/dashing/setup.bash
+source install/local_setup.bash
+ros2 run open_manipulator_x_tof open_manipulator_x_tof  
 ```
  
- 4. To visualize models on RViz  
-
-ros2 launch open_manipulator_x_description open_manipulator_x_rviz.launch.py 
-
-
----------------------------------
-
-
-
-
-
-
-
-
-Install in Ubuntu RPi Imager
-Download and burn Ubuntu
-On the SD you can set your wifi password
-SSH enabled by default: ubuntu:ubuntu
-
--- Create SWAP:
+ 4. To visualize models on RViz run on a external computer step 6 from `How to build the ROS 2 system` section and run:
 
 ```bash
-sudo fallocate -l 1G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-sudo nano /etc/fstab 
-        /swapfile swap swap defaults 0 0
-sudo free -h
-```
-
--- Install Dashing:
-
-```bash
-sudo apt update && sudo apt upgrade
-sudo locale-gen en_US en_US.UTF-8
-sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
-export LANG=en_US.UTF-8
-sudo apt update && sudo apt install curl gnupg2 lsb-release
-curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
-sudo sh -c 'echo "deb [arch=amd64,arm64] http://packages.ros.org/ros2/ubuntu `lsb_release -cs` main" > /etc/apt/sources.list.d/ros2-latest.list'
-sudo apt update && sudo apt install ros-dashing-ros-base
-```
-
--- Install OpenManipulator packages:
-
-```bash
-sudo apt install python3-argcomplete python3-colcon-common-extensions libboost-system-dev
-mkdir -p ~/robotis_ws/src && cd ~/robotis_ws/src
-git clone -b ros2 https://github.com/ROBOTIS-GIT/DynamixelSDK.git  
-git clone -b ros2 https://github.com/ROBOTIS-GIT/dynamixel-workbench.git  
-git clone -b ros2 https://github.com/ROBOTIS-GIT/open_manipulator.git  
-git clone -b ros2 https://github.com/ROBOTIS-GIT/open_manipulator_msgs.git  
-git clone -b ros2 https://github.com/ROBOTIS-GIT/open_manipulator_dependencies.git  
-git clone -b ros2 https://github.com/ROBOTIS-GIT/robotis_manipulator.git 
-```
-
-
-```
 cd ~/robotis_ws/
-echo 'source /opt/ros/dashing/setup.bash' >> ~/.bashrc
-source ~/.bashrc
-colcon build --symlink-install --parallel-workers 1
+source /opt/ros/dashing/setup.bash
+source install/local_setup.bash
+ros2 launch open_manipulator_x_tof open_manipulator_x_tof_rviz.launch.py
 ```
-
-
-UDEV RULES
-```
-sudo cp /home/ubuntu/robotis_ws/src/open_manipulator/open_manipulator_x_controller/99-open-manipulator-cdc.rules /etc/udev/rules.d/
-sudo udevadm control --reload-rules
-sudo udevadm trigger
-```
-
-## How to use
-
-ros2 launch open_manipulator_x_controller open_manipulator_x_controller.launch.py  
-ros2 launch open_manipulator_x_description open_manipulator_x_rviz.launch.py 
-
-
-## How to run RViz
-
 
 ## Purpose of the project
 

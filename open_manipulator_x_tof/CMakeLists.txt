@@ -48,6 +48,10 @@ install(TARGETS ${EXEC_NAME}
   DESTINATION lib/${PROJECT_NAME} 
 )
 
+install(DIRECTORY launch rviz
+  DESTINATION share/${PROJECT_NAME}
+)
+
 ################################################################################
 # Macro for ament package
 ################################################################################
