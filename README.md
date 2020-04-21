@@ -41,7 +41,7 @@ Instructions:
  1. Install an Ubuntu Server 18.04.4 64-bits for arm64 architectures in the SD card using [Raspberry Pi Imager](https://www.raspberrypi.org/downloads/)
  2. Once the SD card flashing is done WLAN password can be set in the file `boot/network-config` 
  3. Connect the Raspberry Pi to its power supply and use `ssh` to obtain a console. Initial user:password will be `ubuntu:ubuntu` but you will be asked to modify it after the first login.
- 4. Create a SWAP partition:
+ 4. (OPTIONAL IN LOW RAM DEVICES) Create a SWAP partition:
    
 ```bash
 sudo fallocate -l 1G /swapfile
@@ -56,7 +56,7 @@ sudo echo "/swapfile swap swap defaults 0 0" >> /etc/fstab
 sudo locale-gen en_US en_US.UTF-8
 sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 export LANG=en_US.UTF-8
-sudo apt update && sudo apt install curl gnupg2 lsb-release
+sudo apt update && sudo apt install -y curl gnupg2 lsb-release
 curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
 sudo sh -c 'echo "deb [arch=amd64,arm64] http://packages.ros.org/ros2/ubuntu `lsb_release -cs` main" > /etc/apt/sources.list.d/ros2-latest.list'
 sudo apt update && sudo apt install ros-dashing-ros-base
@@ -65,7 +65,7 @@ sudo apt update && sudo apt install ros-dashing-ros-base
    
 ```bash
 source /opt/ros/dashing/setup.bash 
-sudo apt install python3-argcomplete python3-colcon-common-extensions libboost-system-dev
+sudo apt install -y python3-argcomplete python3-colcon-common-extensions libboost-system-dev
 mkdir -p ~/robotis_ws/src && cd ~/robotis_ws/src
 git clone -b ros2 https://github.com/ROBOTIS-GIT/DynamixelSDK.git  
 git clone -b ros2 https://github.com/ROBOTIS-GIT/dynamixel-workbench.git  
@@ -83,10 +83,9 @@ colcon build --symlink-install --parallel-workers 1
 
 ```bash
 source /opt/ros/dashing/setup.bash 
-sudo apt install python-rosdep2 python3-vcstool libncurses5-dev libcurl4-openssl-dev libasio-dev clang-tidy
-source /opt/ros/dashing/setup.bash
+sudo apt install -y python-rosdep2 python3-vcstool libncurses5-dev libcurl4-openssl-dev libasio-dev clang-tidy
 mkdir ~/uros_ws && cd ~/uros_ws
-git clone -b dashing https://github.com/micro-ROS/micro-ros-build.git src/micro-ros-build   #USE JULIAN BRANCH
+git clone -b dashing https://github.com/micro-ROS/micro-ros-build.git src/micro-ros-build   #USE feature/agent_lite BRANCH
 sudo rosdep init && rosdep update && rosdep install --from-path src --ignore-src -y
 colcon build
 source install/local_setup.bash
