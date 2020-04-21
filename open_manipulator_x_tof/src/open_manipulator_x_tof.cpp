@@ -22,16 +22,13 @@ OpenManipulatorXToFDemo::OpenManipulatorXToFDemo()
   /********************************************************************************
   ** Initialise Subscribers
   ********************************************************************************/
-  auto qos = rclcpp::QoS(rclcpp::KeepLast(1));
-  auto qos_besteffort = rclcpp::QoS(rclcpp::KeepLast(1));
-  qos_besteffort.best_effort();
 
-  joint_states_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
-    "open_manipulator_x/joint_states", qos, std::bind(&OpenManipulatorXToFDemo::joint_states_callback, this, _1));
+  // joint_states_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
+  //   "open_manipulator_x/joint_states", rclcpp::SensorDataQoS(), std::bind(&OpenManipulatorXToFDemo::joint_states_callback, this, _1));
   kinematics_pose_sub_ = this->create_subscription<open_manipulator_msgs::msg::KinematicsPose>(
-    "open_manipulator_x/kinematics_pose", qos, std::bind(&OpenManipulatorXToFDemo::kinematics_pose_callback, this, _1));
+    "kinematics_pose", rclcpp::QoS(rclcpp::KeepLast(1)), std::bind(&OpenManipulatorXToFDemo::kinematics_pose_callback, this, _1));
   tof_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-    "sensors/tof", qos_besteffort, std::bind(&OpenManipulatorXToFDemo::tof_sensor_callback, this, _1));
+    "sensors/tof", rclcpp::SensorDataQoS(), std::bind(&OpenManipulatorXToFDemo::tof_sensor_callback, this, _1));
   
   /********************************************************************************
   ** Initialise Marker Publishers
@@ -69,13 +66,13 @@ OpenManipulatorXToFDemo::OpenManipulatorXToFDemo()
   ** Initialise Clients
   ********************************************************************************/
   goal_joint_space_path_client_ = this->create_client<open_manipulator_msgs::srv::SetJointPosition>(
-    "open_manipulator_x/goal_joint_space_path");
+    "goal_joint_space_path");
   goal_tool_control_client_ = this->create_client<open_manipulator_msgs::srv::SetJointPosition>(
-    "open_manipulator_x/goal_tool_control");
+    "goal_tool_control");
   goal_task_space_path_from_present_position_only_client_ = this->create_client<open_manipulator_msgs::srv::SetKinematicsPose>(
-    "open_manipulator_x/goal_task_space_path_from_present_position_only");
+    "goal_task_space_path_from_present_position_only");
   goal_joint_space_path_from_present_client_ = this->create_client<open_manipulator_msgs::srv::SetJointPosition>(
-    "open_manipulator_x/goal_joint_space_path_from_present");
+    "goal_joint_space_path_from_present");
 
   /********************************************************************************
   ** Display in terminal
@@ -177,14 +174,16 @@ void OpenManipulatorXToFDemo::move()
     
     // If elapsed time since las 'start' reset is greater than wait time, start grabbing procedure
     if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count() > GRAB_WAIT_TIME_MS){
-      if(current_position >= 3){
-        float aux_target = filtered_target;
-        set_joint_space_path_from_present(-PI/15, 0.0, 0.0, 0.0, 0.2);
-        set_joint_space_path_from_present(2*PI/15, 0.0, 0.0, 0.0, 0.2);
-        set_joint_space_path_from_present(-PI/15, 0.0, 0.0, 0.0, 0.2);
-        start = std::chrono::steady_clock::now();
-        filtered_target = aux_target;
-      }else{
+        std::cout << "GRABBING: " << present_kinematic_position_[0] << "\n";
+
+        if(current_position >= 3){
+          float aux_target = filtered_target;
+          set_joint_space_path_from_present(-PI/15, 0.0, 0.0, 0.0, 0.2);
+          set_joint_space_path_from_present(2*PI/15, 0.0, 0.0, 0.0, 0.2);
+          set_joint_space_path_from_present(-PI/15, 0.0, 0.0, 0.0, 0.2);
+          start = std::chrono::steady_clock::now();
+          filtered_target = aux_target;
+        }else{
         
         // Open the tool
         set_tool_control(false, 1.0);
@@ -223,19 +222,22 @@ void OpenManipulatorXToFDemo::move()
 
         // If level is not 0 (base level), prevent from collision with the object
         if (current_level > 0){
-          set_joint_space_path(present_joint_angle_[0], present_joint_angle_[1], present_joint_angle_[2], -PI/2, 1.0);
+          // Go up back 100 mm and home position
+          set_task_space_path_from_present_position_only(0.0, 0.1 , 0.0 , 1.0);
+        }else{
+          // Go up 150 mm and home position
+          set_task_space_path_from_present_position_only(0.0, 0.0 , 0.150, 1.0);
         }
         current_level = (current_level == 0) ? 1 : 0;
         current_position = (current_level == 1) ? current_position : current_position + 1;
 
-        // Go up 150 mm and home position
-        set_task_space_path_from_present_position_only(0.0, 0.0 , 0.150, 1.0);
+
         home_position();
         start = std::chrono::steady_clock::now();
       }
     }
 
-    // rclcpp::sleep_for(std::chrono::milliseconds(100));
+    rclcpp::sleep_for(std::chrono::milliseconds(100));
 
     last_target = filtered_target;
   }
