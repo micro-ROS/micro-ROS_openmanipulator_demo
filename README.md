@@ -41,16 +41,8 @@ Instructions:
  1. Install an Ubuntu Server 18.04.4 64-bits for arm64 architectures in the SD card using [Raspberry Pi Imager](https://www.raspberrypi.org/downloads/)
  2. Once the SD card flashing is done WLAN password can be set in the file `boot/network-config` 
  3. Connect the Raspberry Pi to its power supply and use `ssh` to obtain a console. Initial user:password will be `ubuntu:ubuntu` but you will be asked to modify it after the first login.
- 4. (OPTIONAL IN LOW RAM DEVICES) Create a SWAP partition:
-   
-```bash
-sudo fallocate -l 1G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-sudo echo "/swapfile swap swap defaults 0 0" >> /etc/fstab 
-```
- 5. Install ROS 2 Dashing release:
+
+ 4. Install ROS 2 Dashing release:
 
 ```bash
 sudo locale-gen en_US en_US.UTF-8
@@ -61,7 +53,7 @@ curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo ap
 sudo sh -c 'echo "deb [arch=amd64,arm64] http://packages.ros.org/ros2/ubuntu `lsb_release -cs` main" > /etc/apt/sources.list.d/ros2-latest.list'
 sudo apt update && sudo apt install ros-dashing-ros-base
 ```
- 6. Install required Robotis ROS 2 controlling packages:
+ 5. Install required Robotis ROS 2 controlling packages:
    
 ```bash
 source /opt/ros/dashing/setup.bash 
@@ -79,7 +71,7 @@ cd ~/robotis_ws/
 # This may take a while
 colcon build --symlink-install --parallel-workers 1
 ```
- 7. Install a micro-ROS Agent:
+ 6. Install a micro-ROS Agent:
 
 ```bash
 source /opt/ros/dashing/setup.bash 
@@ -95,7 +87,7 @@ ros2 run micro_ros_setup create_agent_ws.sh   //GIVES ERROR BUT WORKS
 colcon build --meta src --parallel-workers 1
 ```
 
- 8. Install some USB devices rules:
+ 7. Install some USB devices rules:
 
 ```bash
 sudo cp ~/robotis_ws/src/open_manipulator/open_manipulator_x_controller/99-open-manipulator-cdc.rules /etc/udev/rules.d/
@@ -169,7 +161,7 @@ source install/local_setup.bash
 ros2 run open_manipulator_x_tof open_manipulator_x_tof  
 ```
  
- 4. To visualize models on RViz run on a external computer step 6 from `How to build the ROS 2 system` section and run:
+ 4. To visualize models on RViz run on a external computer step 5 from `How to build the ROS 2 system` section and run:
 
 ```bash
 cd ~/robotis_ws/
