@@ -99,7 +99,7 @@ colcon build --symlink-install --parallel-workers 1
 source /opt/ros/dashing/setup.bash 
 sudo apt install -y python-rosdep2 python3-vcstool libncurses5-dev libcurl4-openssl-dev libasio-dev clang-tidy
 mkdir ~/uros_ws && cd ~/uros_ws
-git clone -b dashing https://github.com/micro-ROS/micro-ros-build.git src/micro-ros-build   #USE feature/agent_lite BRANCH
+git clone -b dashing https://github.com/micro-ROS/micro_ros_setup.git src/micro_ros_setup   #USE feature/agent_lite BRANCH
 sudo rosdep init && rosdep update && rosdep install --from-path src --ignore-src -y
 colcon build
 source install/local_setup.bash
@@ -126,7 +126,7 @@ Using a computer workstation with a ROS 2 Dashing installation:
 ```bash
 source /opt/ros/$ROS_DISTRO/setup.bash
 mkdir uros_ws && cd uros_ws
-git clone -b $ROS_DISTRO https://github.com/micro-ROS/micro-ros-build.git src/micro-ros-build
+git clone -b $ROS_DISTRO https://github.com/micro-ROS/micro_ros_setup.git src/micro_ros_setup
 rosdep update && rosdep install --from-path src --ignore-src -y
 colcon build
 source install/local_setup.bash
