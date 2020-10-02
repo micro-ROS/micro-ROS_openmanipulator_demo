@@ -208,10 +208,10 @@ standards, e.g., ISO 26262.
 
 ## License
 
-This repository is open-sourced under the Apache-2.0 license. See the [LICENSE](LICENSE) file for details.
+This repository is open-sourced under the Apache-2.0 license. See the <a href="LICENSE" data-proofer-ignore>LICENSE</a>. file for details.
 
 For a list of other open-source components included in this repository,
-see the file [3rd-party-licenses.txt](3rd-party-licenses.txt).
+see the file <a href="3rd-party-licenses.txt" data-proofer-ignore>3rd-party-licenses.txt</a>.
 
 ## Known Issues/Limitations
 
